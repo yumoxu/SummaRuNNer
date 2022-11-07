@@ -99,9 +99,9 @@ def load_examples(f, label_algo, original_impl=False):
         json_obj = json.loads(line)
         LABEL_KEY = 'labels' if label_algo == 'oreo' else label_algo
         examples.append({
-            'labels': json_obj[LABEL_KEY],
             'doc': '\n'.join([' '.join(sent) for sent in json_obj['src']]),
             'summaries': '\n'.join([' '.join(sent) for sent in json_obj['tgt']]),
+            'labels': '\n'.join(str(ll) for ll in json_obj[LABEL_KEY]),
         })
         
     return examples
