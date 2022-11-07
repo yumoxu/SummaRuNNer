@@ -78,7 +78,8 @@ def eval(net,vocab,data_iter,criterion):
             targets = targets.cuda()
         probs = net(features,doc_lens)
         loss = criterion(probs,targets)
-        total_loss += loss.data[0]
+        # total_loss += loss.data[0]
+        total_loss += loss.cpu().data.numpy()
         batch_num += 1
     loss = total_loss / batch_num
     net.train()
