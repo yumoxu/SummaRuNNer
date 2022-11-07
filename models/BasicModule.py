@@ -26,9 +26,10 @@ class BasicModule(torch.nn.Module):
         sent_input = torch.cat(sent_input,dim=0)                                # (B,max_len,2*H)
         return sent_input
     
-    def save(self):
+    def save(self, epoch, iter):
         checkpoint = {'model':self.state_dict(), 'args': self.args}
-        best_path = '%s%s_seed_%d.pt' % (self.args.save_dir,self.model_name,self.args.seed)
+        # best_path = '%s%s_seed_%d.pt' % (self.args.save_dir,self.model_name,self.args.seed)
+        best_path= f'{self.args.save_dir}{self.model_name}-ep_{epoch}-iter_{iter}.pt'
         torch.save(checkpoint,best_path)
 
         return best_path
