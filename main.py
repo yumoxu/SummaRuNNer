@@ -174,7 +174,7 @@ def train():
             if i % 100 == 0:
                 logging.info('Epoch: %2d Iter: %2d Total Cost:%f h'%(epoch, i, (time()-t1)/3600))
                 
-            if i > 0 and i % args.report_every == 0:
+            if i % args.report_every == 0:
                 cur_loss = eval(net,vocab,val_iter,criterion)
                 if cur_loss < min_loss:
                     min_loss = cur_loss
