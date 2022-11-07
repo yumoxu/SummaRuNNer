@@ -75,7 +75,7 @@ def eval(net,vocab,data_iter,criterion):
     total_loss = 0
     batch_num = 0
     for batch in data_iter:
-        features,targets,_,doc_lens = vocab.make_features(batch, label_algo=args.label_algo)
+        features,targets,_,doc_lens = vocab.make_features(batch)
         features,targets = Variable(features), Variable(targets.float())
         if use_gpu:
             features = features.cuda()
@@ -91,6 +91,9 @@ def eval(net,vocab,data_iter,criterion):
 
 
 def load_examples(f, label_algo, original_impl=False):
+    """
+        Convert json from .bert_json to the acceptable format for torch.utils.data.DataLoader.
+    """
     if original_impl:
         return [json.loads(line) for line in f]
 
@@ -154,7 +157,7 @@ def train():
     t1 = time() 
     for epoch in range(1,args.epochs+1):
         for i,batch in enumerate(train_iter):
-            features,targets,_,doc_lens = vocab.make_features(batch, label_algo=args.label_algo)
+            features,targets,_,doc_lens = vocab.make_features(batch)
             features,targets = Variable(features), Variable(targets.float())
             if use_gpu:
                 features = features.cuda()
@@ -211,7 +214,7 @@ def test():
     time_cost = 0
     file_id = 1
     for batch in tqdm(test_iter):
-        features,_,summaries,doc_lens = vocab.make_features(batch, label_algo=args.label_algo)
+        features,_,summaries,doc_lens = vocab.make_features(batch)
         t1 = time()
         if use_gpu:
             probs = net(Variable(features).cuda(), doc_lens)
