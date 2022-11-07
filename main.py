@@ -27,6 +27,11 @@ parser.add_argument('-kernel_num',type=int,default=100)
 parser.add_argument('-kernel_sizes',type=str,default='3,4,5')
 parser.add_argument('-model',type=str,default='RNN_RNN')
 parser.add_argument('-hidden_size',type=int,default=200)
+
+# data
+parser.add_argument('-label_algo',type=str,default='greedy')
+
+
 # train
 parser.add_argument('-lr',type=float,default=1e-3)
 parser.add_argument('-batch_size',type=int,default=32)
@@ -71,7 +76,7 @@ def eval(net,vocab,data_iter,criterion):
     total_loss = 0
     batch_num = 0
     for batch in data_iter:
-        features,targets,_,doc_lens = vocab.make_features(batch)
+        features,targets,_,doc_lens = vocab.make_features(batch, label_algo=args.label_algo)
         features,targets = Variable(features), Variable(targets.float())
         if use_gpu:
             features = features.cuda()
@@ -130,7 +135,7 @@ def train():
     t1 = time() 
     for epoch in range(1,args.epochs+1):
         for i,batch in enumerate(train_iter):
-            features,targets,_,doc_lens = vocab.make_features(batch)
+            features,targets,_,doc_lens = vocab.make_features(batch, label_algo=args.label_algo)
             features,targets = Variable(features), Variable(targets.float())
             if use_gpu:
                 features = features.cuda()
@@ -187,7 +192,7 @@ def test():
     time_cost = 0
     file_id = 1
     for batch in tqdm(test_iter):
-        features,_,summaries,doc_lens = vocab.make_features(batch)
+        features,_,summaries,doc_lens = vocab.make_features(batch, label_algo=args.label_algo)
         t1 = time()
         if use_gpu:
             probs = net(Variable(features).cuda(), doc_lens)
