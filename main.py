@@ -172,7 +172,7 @@ def train():
                 print('Batch ID:%d Loss:%f' %(i,loss.data[0]))
                 continue
             if i % 100 == 0:
-                logging.info('Epoch: %2d Iter: %2d Total Cost:%f h'%(epoch, i, (t2-t1)/3600))
+                logging.info('Epoch: %2d Iter: %2d Total Cost:%f h'%(epoch, i, (time()-t1)/3600))
                 
             if i % args.report_every == 0:
                 cur_loss = eval(net,vocab,val_iter,criterion)
