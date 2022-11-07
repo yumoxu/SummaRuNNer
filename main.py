@@ -171,13 +171,16 @@ def train():
             if args.debug:
                 print('Batch ID:%d Loss:%f' %(i,loss.data[0]))
                 continue
+            if i % 100 == 0:
+                logging.info('Epoch: %2d Iter: %2d Total Cost:%f h'%(epoch, i, (t2-t1)/3600))
+                
             if i % args.report_every == 0:
                 cur_loss = eval(net,vocab,val_iter,criterion)
                 if cur_loss < min_loss:
                     min_loss = cur_loss
                     best_path = net.save()
-                logging.info('Epoch: %2d Min_Val_Loss: %f Cur_Val_Loss: %f'
-                        % (epoch,min_loss,cur_loss))
+                logging.info('Epoch: %2d Iter: %2d Min_Val_Loss: %f Cur_Val_Loss: %f'
+                        % (epoch, i, min_loss, cur_loss))
     t2 = time()
     logging.info('Total Cost:%f h'%((t2-t1)/3600))
 
