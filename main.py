@@ -31,7 +31,6 @@ parser.add_argument('-hidden_size',type=int,default=200)
 # data
 parser.add_argument('-label_algo',type=str,default='greedy')
 
-
 # train
 parser.add_argument('-lr',type=float,default=1e-3)
 parser.add_argument('-batch_size',type=int,default=32)
@@ -90,6 +89,24 @@ def eval(net,vocab,data_iter,criterion):
     net.train()
     return loss
 
+
+def load_examples(f, label_algo, original_impl=False):
+    if original_impl:
+        return [json.loads(line) for line in f]
+
+    examples = []
+    for line in f:
+        json_obj = json.loads(line)
+        LABEL_KEY = 'labels' if label_algo == 'oreo' else label_algo
+        examples.append({
+            'labels': json_obj[LABEL_KEY],
+            'doc': '\n'.join([' '.join(sent) for sent in json_obj['src']]),
+            'summaries': '\n'.join([' '.join(sent) for sent in json_obj['tgt']]),
+        })
+        
+    return examples
+    
+
 def train():
     logging.info('Loading vocab,train and val dataset.Wait a second,please')
     
@@ -99,11 +116,13 @@ def train():
     vocab = utils.Vocab(embed, word2id)
 
     with open(args.train_dir) as f:
-        examples = [json.loads(line) for line in f]
+        # examples = [json.loads(line) for line in f]
+        examples = load_examples(f, label_algo=args.label_algo, original_impl=False)
     train_dataset = utils.Dataset(examples)
 
     with open(args.val_dir) as f:
-        examples = [json.loads(line) for line in f]
+        # examples = [json.loads(line) for line in f]
+        examples = load_examples(f, label_algo=args.label_algo, original_impl=False)
     val_dataset = utils.Dataset(examples)
 
     # update args

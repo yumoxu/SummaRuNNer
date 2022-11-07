@@ -56,14 +56,14 @@ class Vocab():
 
         return features,targets,summaries,doc_lens
 
-    def make_features(self,batch, sent_trunc=50, doc_trunc=100, label_algo='labels'):
+    def make_features(self,batch, sent_trunc=50, doc_trunc=100, split_token='\n'):
         sents_list, targets, doc_lens = [],[],[]
         
-        LABEL_KEY = 'labels' if label_algo == 'oreo' else label_algo
+        # LABEL_KEY = 'labels' if label_algo == 'oreo' else label_algo
         # trunc document
-        for sents, labels in zip(batch['src'], batch[LABEL_KEY]):
-            # sents = doc.split(split_token)
-            # labels = label.split(split_token)
+        for doc, label in zip(batch['doc'], batch['labels']):
+            sents = doc.split(split_token)
+            labels = label.split(split_token)
             labels = [float(l) for l in labels]
             max_sent_num = min(doc_trunc,len(sents))
             sents = sents[:max_sent_num]
@@ -74,8 +74,8 @@ class Vocab():
         # trunc or pad sent
         max_sent_len = 0
         batch_sents = []
-        for words in sents_list:
-            # words = sent.split()
+        for sent in sents_list:
+            words = sent.split()
             if len(words) > sent_trunc:
                 words = words[:sent_trunc]
             max_sent_len = len(words) if len(words) > max_sent_len else max_sent_len
@@ -88,8 +88,8 @@ class Vocab():
         
         features = torch.LongTensor(features)
         targets = torch.LongTensor(targets)
-        # summaries = batch['summaries']
-        summaries = '\n'.join([' '.join(sent) for sent in batch['tgt']])
+        summaries = batch['summaries']
+        # summaries = '\n'.join([' '.join(sent) for sent in batch['tgt']])
 
         return features,targets,summaries,doc_lens
 
