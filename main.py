@@ -56,6 +56,9 @@ parser.add_argument('-device',type=int)
 parser.add_argument('-test',action='store_true')
 parser.add_argument('-debug',action='store_true')
 parser.add_argument('-predict',action='store_true')
+
+parser.add_argument('-tri_block',action='store_true')
+
 args = parser.parse_args()
 use_gpu = args.device is not None
 
@@ -246,6 +249,38 @@ def test_original():
     print('Speed: %.2f docs / s' % (doc_num / time_cost))
 
 
+def _get_ngrams(n, text):
+    ngram_set = set()
+    text_length = len(text)
+    max_index_ngram_start = text_length - n
+    for i in range(max_index_ngram_start + 1):
+        ngram_set.add(tuple(text[i:i + n]))
+    return ngram_set
+
+
+def _block_tri(c, p):
+    tri_c = _get_ngrams(3, c.split())
+    for s in p:
+        tri_s = _get_ngrams(3, s.split())
+        if len(tri_c.intersection(tri_s)) > 0:
+            return True
+    return False
+
+def select_with_trigram_block(doc, ranked_ids, summary_size):
+    pred = []
+    for j in ranked_ids[:len(doc)]:
+        if (j >= len(doc)):
+            continue
+        cand = doc[j].strip()
+        if (not _block_tri(cand, [cand for _, cand in pred])):
+            pred.append([j, cand])
+
+        if len(pred) == summary_size:
+            break
+    
+    pred = [cand for _, cand in sorted(pred)]
+    return pred
+    
 def test():
     embed = torch.Tensor(np.load(args.embedding)['embedding'])
     with open(args.word2id) as f:
@@ -298,15 +333,24 @@ def test():
             for doc_id,doc_len in enumerate(doc_lens):
                 stop = start + doc_len
                 prob = probs[start:stop]
-                topk = min(args.topk,doc_len)
-                topk_indices = prob.topk(topk)[1].cpu().data.numpy()
-                topk_indices.sort()
-                doc = batch['doc'][doc_id].split('\n')[:doc_len]
-                hyp = [doc[index] for index in topk_indices]
-                ref = summaries[doc_id]
+
+                doc = batch['doc'][doc_id].split('\n')
+                doc = doc[:doc_len]
+
+                if not args.tri_block:
+                    topk = min(args.topk,doc_len)
+                    topk_indices = prob.topk(topk)[1].cpu().data.numpy()
+                    topk_indices.sort()
+                    hyp = [doc[index] for index in topk_indices]
+                else:
+                    topk_indices = prob.topk(doc_len)[1].cpu().data.numpy()
+                    hyp = select_with_trigram_block(doc, topk_indices, summary_size=args.topk)
                 
-                gold_f.write('<q>'.join(ref.split('\n')) + '\n')
                 cand_f.write('<q>'.join(hyp) + '\n')
+                    
+                ref = summaries[doc_id]
+                gold_f.write('<q>'.join(ref.split('\n')) + '\n')
+                
                 start = stop
     print('Speed: %.2f docs / s' % (doc_num / time_cost))
 
