@@ -253,7 +253,8 @@ def test():
     vocab = utils.Vocab(embed, word2id)
 
     with open(args.test_dir) as f:
-        examples = [json.loads(line) for line in f]
+        # examples = [json.loads(line) for line in f]
+        examples = load_examples(f, label_algo=args.label_algo, original_impl=False)
     test_dataset = utils.Dataset(examples)
 
     test_iter = DataLoader(dataset=test_dataset,
