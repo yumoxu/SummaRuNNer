@@ -278,8 +278,8 @@ def test():
     doc_num = len(test_dataset)
     time_cost = 0
 
-    gold_path = args.load_dir[:3] + '.gold' # remove .pt
-    cand_path = args.load_dir[:3] + '.candidate' # remove .pt
+    gold_path = args.load_dir[:-3] + '.gold' # remove .pt
+    cand_path = args.load_dir[:-3] + '.candidate' # remove .pt
 
     print(f'Gold path: {gold_path}')
     print(f'Candidate path: {cand_path}')
