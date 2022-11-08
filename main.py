@@ -284,30 +284,30 @@ def test():
     print(f'Gold path: {gold_path}')
     print(f'Candidate path: {cand_path}')
 
-    for batch in tqdm(test_iter):
-        features,_,summaries,doc_lens = vocab.make_features(batch)
-        t1 = time()
-        if use_gpu:
-            probs = net(Variable(features).cuda(), doc_lens)
-        else:
-            probs = net(Variable(features), doc_lens)
-        t2 = time()
-        time_cost += t2 - t1
-        start = 0
-        for doc_id,doc_len in enumerate(doc_lens):
-            stop = start + doc_len
-            prob = probs[start:stop]
-            topk = min(args.topk,doc_len)
-            topk_indices = prob.topk(topk)[1].cpu().data.numpy()
-            topk_indices.sort()
-            doc = batch['doc'][doc_id].split('\n')[:doc_len]
-            hyp = [doc[index] for index in topk_indices]
-            ref = summaries[doc_id]
-            with open(gold_path, 'w') as f:
-                f.write('<q>'.join(ref.split('\n')) + '\n')
-            with open(cand_path, 'w') as f:
-                f.write('<q>'.join(hyp) + '\n')
-            start = stop
+    with open(gold_path, 'a') as gold_f, open(cand_path, 'a') as cand_f:
+        for batch in tqdm(test_iter):
+            features,_,summaries,doc_lens = vocab.make_features(batch)
+            t1 = time()
+            if use_gpu:
+                probs = net(Variable(features).cuda(), doc_lens)
+            else:
+                probs = net(Variable(features), doc_lens)
+            t2 = time()
+            time_cost += t2 - t1
+            start = 0
+            for doc_id,doc_len in enumerate(doc_lens):
+                stop = start + doc_len
+                prob = probs[start:stop]
+                topk = min(args.topk,doc_len)
+                topk_indices = prob.topk(topk)[1].cpu().data.numpy()
+                topk_indices.sort()
+                doc = batch['doc'][doc_id].split('\n')[:doc_len]
+                hyp = [doc[index] for index in topk_indices]
+                ref = summaries[doc_id]
+                
+                gold_f.write('<q>'.join(ref.split('\n')) + '\n')
+                cand_f.write('<q>'.join(hyp) + '\n')
+                start = stop
     print('Speed: %.2f docs / s' % (doc_num / time_cost))
 
 
